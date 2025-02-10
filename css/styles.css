@@ -1,0 +1,31 @@
+#monetary-correction-calculator {
+    visibility: hidden;
+    width: 100%;
+    margin: 0 !important;
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+    max-width: unset !important;
+    font-family: "Verdana", Sans-serif;
+}
+
+#monetary-correction-calculator * {
+    box-sizing: border-box;
+}
+
+#monetary-correction-calculator input[type="date"]::-webkit-calendar-picker-indicator {
+    display: none;
+}
+
+#monetary-correction-calculator input[type="date"] {
+    appearance: none;
+}
+
+#monetary-correction-calculator select::-ms-expand {
+    display: none;
+}
+
+#monetary-correction-calculator select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}

@@ -1,0 +1,350 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="js/loadAlpine.js"></script>
+    <script src="js/calculatorData.js"></script>
+    <script src="js/loadTailwind.js"></script>
+</head>
+
+<body>
+    <div id="monetary-correction-calculator" x-data="calculatorData">
+        <div class="flex flex-col w-full font-verdana gap-12"
+            x-bind:class="{'opacity-50 pointer-events-none': loading}">
+
+            <div class="grid md:grid-cols-2 gap-4 md:gap-10">
+                <div>
+                    <label class="text-[#1C1C1C] text-xl">Valor inicial <span class="text-[#E8201F]">*</span></label>
+                    <div class="w-full h-11 border-0 border-b border-solid border-[#72727D] mt-4 relative">
+                        <div class="text-[#AEAEAE] text-xl mb-4 left-4 absolute">R$</div>
+                        <input @input="setCurrencyValue($event,'initialValue')"
+                            class="absolute w-full bg-transparent outline-none border-none inset-0 text-xl text-right pl-10  pr-4 pb-4 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            type="text" placeholder="0,00" />
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[#1C1C1C] text-xl">Índice <span class="text-[#E8201F]">*</span></label>
+                    <div class="w-full h-11 border-0 border-b border-solid border-[#72727D] mt-4 relative">
+                        <select x-model="index"
+                            class="absolute w-full h-full px-4 bg-transparent outline-none border-none inset-0 text-xl pr-10"
+                            x-bind:class="{'text-[#72727D]': index === null}">
+                            <option selected>Selecionar</option>
+                            <template x-for="typeKey in Object.keys(indexes)">
+                                <option x-bind:value="typeKey" x-text="indexes[typeKey]"></option>
+                            </template>
+                        </select>
+                        <div class="text-[#AEAEAE] text-xl mb-4 absolute right-4">
+                            <svg class="size-6" viewBox="0 0 24 24" fill="none">
+                                <path d="M2.40039 7.19995L12.0004 16.8L21.6004 7.19995" stroke="currentColor"
+                                    stroke-width="1.2" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4 md:gap-10">
+                <div>
+                    <label class="text-[#1C1C1C] text-xl">Data inicial <span class="text-[#E8201F]">*</span></label>
+                    <div class="w-full h-11 border-0 border-b border-solid border-[#72727D] mt-4 relative">
+                        <input x-model="startDate" x-ref="refStartDate"
+                            class="absolute h-full w-full bg-transparent outline-none border-none inset-0 text-xl pr-10 pb-4 pl-4"
+                            type="date" placeholder="Selecione" />
+                        <div class="text-[#AEAEAE] text-xl mb-4 absolute right-4 cursor-pointer"
+                            @click="$refs.refStartDate.showPicker()">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <path d="M16 2V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <path d="M8 2V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <path d="M3 9H21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <path fill-rule="evenodd" clip-rule="evenodd"
+                                    d="M19 4H5C3.895 4 3 4.895 3 6V19C3 20.105 3.895 21 5 21H19C20.105 21 21 20.105 21 19V6C21 4.895 20.105 4 19 4Z"
+                                    stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <path
+                                    d="M7.01268 12.729C6.87468 12.729 6.76268 12.841 6.76368 12.979C6.76368 13.117 6.87568 13.229 7.01368 13.229C7.15168 13.229 7.26368 13.117 7.26368 12.979C7.26368 12.841 7.15168 12.729 7.01268 12.729"
+                                    stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <path
+                                    d="M12.0127 12.729C11.8747 12.729 11.7627 12.841 11.7637 12.979C11.7637 13.117 11.8757 13.229 12.0137 13.229C12.1517 13.229 12.2637 13.117 12.2637 12.979C12.2637 12.841 12.1517 12.729 12.0127 12.729"
+                                    stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <path
+                                    d="M17.0127 12.729C16.8747 12.729 16.7627 12.841 16.7637 12.979C16.7637 13.117 16.8757 13.229 17.0137 13.229C17.1517 13.229 17.2637 13.117 17.2637 12.979C17.2637 12.841 17.1517 12.729 17.0127 12.729"
+                                    stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <path
+                                    d="M7.01268 16.729C6.87468 16.729 6.76268 16.841 6.76368 16.979C6.76368 17.117 6.87568 17.229 7.01368 17.229C7.15168 17.229 7.26368 17.117 7.26368 16.979C7.26368 16.841 7.15168 16.729 7.01268 16.729"
+                                    stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <path
+                                    d="M12.0127 16.729C11.8747 16.729 11.7627 16.841 11.7637 16.979C11.7637 17.117 11.8757 17.229 12.0137 17.229C12.1517 17.229 12.2637 17.117 12.2637 16.979C12.2637 16.841 12.1517 16.729 12.0127 16.729"
+                                    stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[#1C1C1C] text-xl">Data final <span class="text-[#E8201F]">*</span></label>
+                    <div class="w-full h-11 border-0 border-b border-solid border-[#72727D] mt-4 relative">
+                        <input x-model="endDate" x-ref="endDate"
+                            class="absolute h-full w-full bg-transparent outline-none border-none inset-0 text-xl pr-10 pb-4 pl-4"
+                            type="date" placeholder="Selecione" />
+                        <div class="text-[#AEAEAE] text-xl mb-4 absolute right-4 cursor-pointer"
+                            @click="$refs.endDate.showPicker()">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <path d="M16 2V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <path d="M8 2V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <path d="M3 9H21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <path fill-rule="evenodd" clip-rule="evenodd"
+                                    d="M19 4H5C3.895 4 3 4.895 3 6V19C3 20.105 3.895 21 5 21H19C20.105 21 21 20.105 21 19V6C21 4.895 20.105 4 19 4Z"
+                                    stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <path
+                                    d="M7.01268 12.729C6.87468 12.729 6.76268 12.841 6.76368 12.979C6.76368 13.117 6.87568 13.229 7.01368 13.229C7.15168 13.229 7.26368 13.117 7.26368 12.979C7.26368 12.841 7.15168 12.729 7.01268 12.729"
+                                    stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <path
+                                    d="M12.0127 12.729C11.8747 12.729 11.7627 12.841 11.7637 12.979C11.7637 13.117 11.8757 13.229 12.0137 13.229C12.1517 13.229 12.2637 13.117 12.2637 12.979C12.2637 12.841 12.1517 12.729 12.0127 12.729"
+                                    stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <path
+                                    d="M17.0127 12.729C16.8747 12.729 16.7627 12.841 16.7637 12.979C16.7637 13.117 16.8757 13.229 17.0137 13.229C17.1517 13.229 17.2637 13.117 17.2637 12.979C17.2637 12.841 17.1517 12.729 17.0127 12.729"
+                                    stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <path
+                                    d="M7.01268 16.729C6.87468 16.729 6.76268 16.841 6.76368 16.979C6.76368 17.117 6.87568 17.229 7.01368 17.229C7.15168 17.229 7.26368 17.117 7.26368 16.979C7.26368 16.841 7.15168 16.729 7.01268 16.729"
+                                    stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <path
+                                    d="M12.0127 16.729C11.8747 16.729 11.7627 16.841 11.7637 16.979C11.7637 17.117 11.8757 17.229 12.0137 17.229C12.1517 17.229 12.2637 17.117 12.2637 16.979C12.2637 16.841 12.1517 16.729 12.0127 16.729"
+                                    stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full flex flex-col gap-4">
+                <label class="text-[#1C1C1C] text-xl">Juros</label>
+                <div class="grid md:grid-cols-2 gap-4 md:gap-10">
+                    <template x-for="feeType in sortedFeeTaxesTypes">
+                        <label x-on:click="toggleFeeTax(feeType.label)" :key="feeType.label"
+                            class="bg-[#F9F9FC] py-6 px-4 border-[#D9DCE1] rounded border-solid border-2 cursor-pointer"
+                            x-bind:class="{'border-[#E8201F] text-white': feeTaxes.includes(feeType.label)}">
+                            <div class="w-full flex justify-between">
+                                <div class="flex gap-2 items-end">
+                                    <h3 class="text-[#475467] font-bold text-[36px] md:text-[32px] m-0 tracking-tighter"
+                                        x-text="feeType.label">
+                                    </h3>
+                                    <small class="text-[#475467]">ao mês</small>
+                                </div>
+                                <div class="size-4 m-w-4 m-h-4 rounded border flex items-center justify-center border-solid border-1 border-[#D9DCE1]"
+                                    x-bind:class="{'bg-[#E8201F] border-[#E8201F] text-white': feeTaxes.includes(feeType.label)}">
+                                    <template x-if="feeTaxes.includes(feeType.label)">
+                                        <svg class="size-4" viewBox="0 0 24 24" fill="none">
+                                            <path d="M4 12.6111L8.92308 17.5L20 6.5" stroke="currentColor"
+                                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                    </template>
+                                </div>
+                            </div>
+                        </label>
+                    </template>
+                </div>
+            </div>
+
+            <template x-for="feeTax in sortedFeeTaxes.filter((x) => x !== '0%')">
+                <div class="w-full flex flex-col gap-4" :key="feeTax">
+                    <label class="text-[#1C1C1C] text-xl font-normal" x-text="rowDataLabel(feeTax)"></label>
+                    <div class="grid md:grid-cols-2 gap-4 md:gap-10">
+                        <div>
+                            <label class="text-[#1C1C1C] text-xl">Data inicial <span
+                                    class="text-[#E8201F]">*</span></label>
+                            <div class="w-full h-11 border-0 border-b border-solid border-[#72727D] mt-4 relative">
+                                <input x-model="datesTypes[feeTax].startDate" x-bind:id="`refStartDate_${feeTax}`"
+                                    class="absolute h-full w-full bg-transparent outline-none border-none inset-0 text-xl pr-10 pb-4 pl-4"
+                                    type="date" placeholder="Selecione" />
+                                <div class="text-[#AEAEAE] text-xl mb-4 absolute right-4 cursor-pointer"
+                                    @click="openDatePicker(feeTax, 'start')">
+                                    <svg class="size-6" viewBox="0 0 24 24" fill="none">
+                                        <path d="M16 2V6" stroke="currentColor" stroke-width="1.5"
+                                            stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M8 2V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                            stroke-linejoin="round" />
+                                        <path d="M3 9H21" stroke="currentColor" stroke-width="1.5"
+                                            stroke-linecap="round" stroke-linejoin="round" />
+                                        <path fill-rule="evenodd" clip-rule="evenodd"
+                                            d="M19 4H5C3.895 4 3 4.895 3 6V19C3 20.105 3.895 21 5 21H19C20.105 21 21 20.105 21 19V6C21 4.895 20.105 4 19 4Z"
+                                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                            stroke-linejoin="round" />
+                                        <path
+                                            d="M7.01268 12.729C6.87468 12.729 6.76268 12.841 6.76368 12.979C6.76368 13.117 6.87568 13.229 7.01368 13.229C7.15168 13.229 7.26368 13.117 7.26368 12.979C7.26368 12.841 7.15168 12.729 7.01268 12.729"
+                                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                            stroke-linejoin="round" />
+                                        <path
+                                            d="M12.0127 12.729C11.8747 12.729 11.7627 12.841 11.7637 12.979C11.7637 13.117 11.8757 13.229 12.0137 13.229C12.1517 13.229 12.2637 13.117 12.2637 12.979C12.2637 12.841 12.1517 12.729 12.0127 12.729"
+                                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                            stroke-linejoin="round" />
+                                        <path
+                                            d="M17.0127 12.729C16.8747 12.729 16.7627 12.841 16.7637 12.979C16.7637 13.117 16.8757 13.229 17.0137 13.229C17.1517 13.229 17.2637 13.117 17.2637 12.979C17.2637 12.841 17.1517 12.729 17.0127 12.729"
+                                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                            stroke-linejoin="round" />
+                                        <path
+                                            d="M7.01268 16.729C6.87468 16.729 6.76268 16.841 6.76368 16.979C6.76368 17.117 6.87568 17.229 7.01368 17.229C7.15168 17.229 7.26368 17.117 7.26368 16.979C7.26368 16.841 7.15168 16.729 7.01268 16.729"
+                                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                            stroke-linejoin="round" />
+                                        <path
+                                            d="M12.0127 16.729C11.8747 16.729 11.7627 16.841 11.7637 16.979C11.7637 17.117 11.8757 17.229 12.0137 17.229C12.1517 17.229 12.2637 17.117 12.2637 16.979C12.2637 16.841 12.1517 16.729 12.0127 16.729"
+                                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                            stroke-linejoin="round" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-[#1C1C1C] text-xl">Data final <span
+                                    class="text-[#E8201F]">*</span></label>
+                            <div class="w-full h-11 border-0 border-b border-solid border-[#72727D] mt-4 relative">
+                                <input x-model="datesTypes[feeTax].endDate" x-bind:id="`refEndDate_${feeTax}`"
+                                    class="absolute h-full w-full bg-transparent outline-none border-none inset-0 text-xl pr-10 pb-4 pl-4"
+                                    type="date" placeholder="Selecione" />
+                                <div class="text-[#AEAEAE] text-xl mb-4 absolute right-4 cursor-pointer"
+                                    @click="openDatePicker(feeTax, 'end')">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                        <path d="M16 2V6" stroke="currentColor" stroke-width="1.5"
+                                            stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M8 2V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                            stroke-linejoin="round" />
+                                        <path d="M3 9H21" stroke="currentColor" stroke-width="1.5"
+                                            stroke-linecap="round" stroke-linejoin="round" />
+                                        <path fill-rule="evenodd" clip-rule="evenodd"
+                                            d="M19 4H5C3.895 4 3 4.895 3 6V19C3 20.105 3.895 21 5 21H19C20.105 21 21 20.105 21 19V6C21 4.895 20.105 4 19 4Z"
+                                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                            stroke-linejoin="round" />
+                                        <path
+                                            d="M7.01268 12.729C6.87468 12.729 6.76268 12.841 6.76368 12.979C6.76368 13.117 6.87568 13.229 7.01368 13.229C7.15168 13.229 7.26368 13.117 7.26368 12.979C7.26368 12.841 7.15168 12.729 7.01268 12.729"
+                                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                            stroke-linejoin="round" />
+                                        <path
+                                            d="M12.0127 12.729C11.8747 12.729 11.7627 12.841 11.7637 12.979C11.7637 13.117 11.8757 13.229 12.0137 13.229C12.1517 13.229 12.2637 13.117 12.2637 12.979C12.2637 12.841 12.1517 12.729 12.0127 12.729"
+                                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                            stroke-linejoin="round" />
+                                        <path
+                                            d="M17.0127 12.729C16.8747 12.729 16.7627 12.841 16.7637 12.979C16.7637 13.117 16.8757 13.229 17.0137 13.229C17.1517 13.229 17.2637 13.117 17.2637 12.979C17.2637 12.841 17.1517 12.729 17.0127 12.729"
+                                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                            stroke-linejoin="round" />
+                                        <path
+                                            d="M7.01268 16.729C6.87468 16.729 6.76268 16.841 6.76368 16.979C6.76368 17.117 6.87568 17.229 7.01368 17.229C7.15168 17.229 7.26368 17.117 7.26368 16.979C7.26368 16.841 7.15168 16.729 7.01268 16.729"
+                                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                            stroke-linejoin="round" />
+                                        <path
+                                            d="M12.0127 16.729C11.8747 16.729 11.7627 16.841 11.7637 16.979C11.7637 17.117 11.8757 17.229 12.0137 17.229C12.1517 17.229 12.2637 17.117 12.2637 16.979C12.2637 16.841 12.1517 16.729 12.0127 16.729"
+                                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                            stroke-linejoin="round" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <template x-if="errors.length">
+                <div class="flex p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 border border-red-400 border-solid"
+                    role="alert">
+                    <svg class="flex-shrink-0 inline w-4 h-4 me-3 mt-[2px]" aria-hidden="true" fill="currentColor"
+                        viewBox="0 0 20 20">
+                        <path
+                            d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+                    </svg>
+                    <span class="sr-only">Danger</span>
+                    <div>
+                        <span class="font-medium">Por favor, preencha todos os campos obrigatórios antes de
+                            calcular.</span>
+                        <ul class="mt-1.5 list-disc list-inside">
+                            <template x-for="error in errors">
+                                <li x-text="error"></li>
+                            </template>
+                        </ul>
+                    </div>
+                </div>
+            </template>
+            <template x-if="results.length > 0">
+                <div>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <template x-for="(col,y) in results">
+                                    <th x-text="col.label"
+                                        class="flex-1 bg-gray-800 text-white p-2 text-sm text-center md:text-left"></th>
+                                </template>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-for="(index,i) in 5">
+                                <tr>
+                                    <template x-for="(col,y) in results">
+                                        <td class="p-0">
+                                            <div class="grid grid-cols-1 md:grid-cols-2">
+                                                <div x-text="col.items[index - 1].label"
+                                                    class="bg-[#E8201F] font-semibold p-2 text-sm p-2 text-center md:text-left text-white">
+                                                </div>
+                                                <div x-text="col.items[index - 1].value"
+                                                    class="text-gray-800 text-sm p-2 text-center md:text-right"></div>
+                                            </div>
+                                        </td>
+                                    </template>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                    <div class="text-gray-800 p-2 text-right text-base font-bold mt-2 ml-auto">
+                        TOTAL : <span x-text="totalValue"></span>
+                    </div>
+                </div>
+            </template>
+            <button
+                class="cursor-pointer font-bold bg-[#E8201F] text-white text-base md:text-lg flex items-center justify-center gap-2 border-none p-4 disabled:opacity-50 disabled:cursor-not-allowed"
+                @click="calculate" x-bind:disabled="loading">
+                <span x-text="loading ? 'Calculando...' : 'Calcular'"></span>
+            </button>
+
+
+            <div class="w-full flex flex-col gap-8">
+                <div class="text-[#E8201F] text-base flex items-center gap-2 font-bold">
+                    <svg class="size-6" viewBox="0 0 24 24" fill="none">
+                        <path fill-rule="evenodd" clip-rule="evenodd"
+                            d="M12 3V3C16.971 3 21 7.029 21 12V12C21 16.971 16.971 21 12 21V21C7.029 21 3 16.971 3 12V12C3 7.029 7.029 3 12 3Z"
+                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M12 12.5V7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                        <path
+                            d="M11.999 16C11.861 16 11.749 16.112 11.75 16.25C11.75 16.388 11.862 16.5 12 16.5C12.138 16.5 12.25 16.388 12.25 16.25C12.25 16.112 12.138 16 11.999 16"
+                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    Informações importantes
+                </div>
+                <div class="w-full flex flex-col gap-4">
+                    <div class="text-[#26262D] text-base flex items-center gap-2">
+                        <span class="text-[#E8201F]">*</span>
+                        Ferramenta adequada para utilização com datas iniciais posteriores a Agosto/1994.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
