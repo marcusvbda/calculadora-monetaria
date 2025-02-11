@@ -16,7 +16,16 @@ const calculatorData = {
     index: null,
     startDate: null,
     endDate: null,
-    datesTypes: [],
+    datesTypes: {
+        // "0,5%": {
+        //     startDate: '2024-01-01',
+        //     endDate: '2025-01-01',
+        // },
+        // "1%": {
+        //     startDate: '2020-01-01',
+        //     endDate: '2025-02-07',
+        // }
+    },
     errors: [],
     results: [],
     openDatePicker(feeTax, type) {
@@ -106,11 +115,10 @@ const calculatorData = {
             }
         }
 
-        const keys = Object.keys(this.sortedFeeTaxes);
-
-        keys.forEach((feeTax, i) => {
-            const { startDate: feeStartDate, endDate: feeEndDate } = this.datesTypes[feeTax];
-
+        this.sortedFeeTaxes.forEach((feeTax, i) => {
+            const feeKey = this.sortedFeeTaxes[i]
+            if (!this.datesTypes[feeKey]) return;
+            const { startDate: feeStartDate, endDate: feeEndDate } = this.datesTypes[feeKey];
             if (!feeStartDate || !feeEndDate) {
                 errors.push(`A faixa de ${feeTax} deve ter datas válidas.`);
                 return;
@@ -124,15 +132,24 @@ const calculatorData = {
             const feeStart = new Date(feeStartDate);
             const feeEnd = new Date(feeEndDate);
 
-            if (feeStart < new Date(this.startDate) || feeEnd > new Date(this.endDate)) {
-                errors.push(`As datas de ${feeTax} devem estar entre a data inicial e final.`);
+            if (feeStart > feeEnd) {
+                errors.push(`A data inicial de ${feeTax} deve ser menor que a data final.`);
+                return;
             }
 
-            if (i > 0) {
-                const prevFeeTax = keys[i - 1];
-                const prevFeeEnd = new Date(this.datesTypes[prevFeeTax].endDate);
+            if (feeStart < new Date(this.startDate) || feeEnd > new Date(this.endDate)) {
+                errors.push(`As datas de ${feeTax} devem estar entre a data inicial e final.`);
+                return;
+            }
+
+            if (i > 1) {
+                const prevFeeKey = this.sortedFeeTaxes[i - 1]
+                const { endDate: prevFeeEndDate } = this.datesTypes[prevFeeKey];
+                const prevFeeEnd = new Date(prevFeeEndDate);
+
                 if (prevFeeEnd >= feeStart) {
-                    errors.push(`A data final de ${prevFeeTax} deve ser menor que a data inicial de ${feeTax}.`);
+                    errors.push(`A data final da faixa de ${prevFeeKey} deve ser anterior a data inicial da faixa de ${feeTax}.`);
+                    return;
                 }
             }
         });

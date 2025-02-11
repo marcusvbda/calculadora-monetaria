@@ -20,7 +20,7 @@
                     <label class="text-[#1C1C1C] text-xl">Valor inicial <span class="text-[#E8201F]">*</span></label>
                     <div class="w-full h-11 border-0 border-b border-solid border-[#72727D] mt-4 relative">
                         <div class="text-[#AEAEAE] text-xl mb-4 left-4 absolute">R$</div>
-                        <input @input="setCurrencyValue($event,'initialValue')"
+                        <input @input="setCurrencyValue($event,'initialValue')" :value="currencyValue(initialValue)"
                             class="absolute w-full bg-transparent outline-none border-none inset-0 text-xl text-right pl-10  pr-4 pb-4 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             type="text" placeholder="0,00" />
                     </div>
@@ -31,9 +31,10 @@
                         <select x-model="index"
                             class="absolute w-full h-full px-4 bg-transparent outline-none border-none inset-0 text-xl pr-10"
                             x-bind:class="{'text-[#72727D]': index === null}">
-                            <option selected>Selecionar</option>
-                            <template x-for="typeKey in Object.keys(indexes)">
-                                <option x-bind:value="typeKey" x-text="indexes[typeKey]"></option>
+                            <option value="" selected>Selecionar</option>
+                            <template x-for="typeKey in Object.keys(indexes)" :key="typeKey">
+                                <option :value="typeKey" x-text="indexes[typeKey]" :selected="index === typeKey">
+                                </option>
                             </template>
                         </select>
                         <div class="text-[#AEAEAE] text-xl mb-4 absolute right-4">
@@ -281,9 +282,8 @@
                 </div>
             </template>
             <template x-if="results.length > 0">
-                <div>
-
-                    <table>
+                <div class="w-full">
+                    <table class="w-full">
                         <thead>
                             <tr>
                                 <template x-for="(col,y) in results">
