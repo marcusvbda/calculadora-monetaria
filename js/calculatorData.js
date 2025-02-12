@@ -147,7 +147,7 @@ const calculatorData = {
                 const { endDate: prevFeeEndDate } = this.datesTypes[prevFeeKey];
                 const prevFeeEnd = new Date(prevFeeEndDate);
 
-                if (prevFeeEnd >= feeStart) {
+                if (prevFeeEnd > feeStart) {
                     errors.push(`A data final da faixa de ${prevFeeKey} deve ser anterior a data inicial da faixa de ${feeTax}.`);
                     return;
                 }
