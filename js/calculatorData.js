@@ -1,3 +1,8 @@
+const createDate = (dt = null) => {
+    if (!dt) return new Date();
+    return new Date(`${dt}T00:00:00`)
+}
+
 const calculatorData = {
     loading: false,
     feeTaxesTypes: [
@@ -10,20 +15,24 @@ const calculatorData = {
         ipca: "IPCA - IBGE",
         tjpr: "TJPR - MÉDIA ENTRE INPC E IGP-DI",
     },
-    feeTaxes: ['0%'],
-    initialValue: 0,
+    feeTaxes: [
+        '0%',
+        // '0,5%', 
+        // '1%'
+    ],
+    initialValue: null, /*120,*/
     totalValue: null,
-    index: null,
-    startDate: null,
-    endDate: null,
+    index: null, /*'inpc', */
+    startDate: null, /* '2000-01-01',*/
+    endDate: null, /*'2025-02-13',*/
     datesTypes: {
         // "0,5%": {
-        //     startDate: '2024-01-01',
-        //     endDate: '2025-01-01',
+        //     startDate: '2000-02-01',
+        //     endDate: '2003-03-01',
         // },
         // "1%": {
-        //     startDate: '2020-01-01',
-        //     endDate: '2025-02-07',
+        //     startDate: '2003-03-01',
+        //     endDate: '2025-02-13',
         // }
     },
     errors: [],
@@ -78,185 +87,234 @@ const calculatorData = {
         this.results = [];
         this.errors = [];
         this.totalValue = null;
-        // try {
-        let errors = [];
-        // Validações básicas
-        if (!this.initialValue) errors.push('Preencha o valor inicial.');
-        if (!this.index) errors.push('Selecione um índice.');
-        if (!this.startDate) errors.push('Selecione a data inicial.');
-        if (!this.endDate) errors.push('Selecione a data final.');
-        if (this.feeTaxes.length === 0) errors.push('Selecione pelo menos um tipo de juros.');
+        try {
+            let errors = [];
+            // Validações básicas
+            if (!this.initialValue) errors.push('Preencha o valor inicial.');
+            if (!this.index) errors.push('Selecione um índice.');
+            if (!this.startDate) errors.push('Selecione a data inicial.');
+            if (!this.endDate) errors.push('Selecione a data final.');
+            if (this.feeTaxes.length === 0) errors.push('Selecione pelo menos um tipo de juros.');
 
-        const minStartDate = new Date('1994-08-01');
+            const minStartDate = createDate('1994-08-01');
 
-        // Validações de datas
-        const isValidDate = (date) => {
-            const parsedDate = new Date(date);
-            return !isNaN(parsedDate.getTime());
-        };
+            // Validações de datas
+            const isValidDate = (date) => {
+                const parsedDate = createDate(date);
+                return !isNaN(parsedDate.getTime());
+            };
 
-        if (this.startDate && this.endDate) {
-            if (!isValidDate(this.startDate) || !isValidDate(this.endDate)) {
-                errors.push('As datas inicial e final devem ser válidas.');
-            } else {
-                const startDate = new Date(this.startDate);
-                const endDate = new Date(this.endDate);
-                if (startDate >= endDate) {
-                    errors.push('A data inicial deve ser menor que a data final.');
+            if (this.startDate && this.endDate) {
+                if (!isValidDate(this.startDate) || !isValidDate(this.endDate)) {
+                    errors.push('As datas inicial e final devem ser válidas.');
+                } else {
+                    const startDate = createDate(this.startDate);
+                    const endDate = createDate(this.endDate);
+                    if (startDate >= endDate) {
+                        errors.push('A data inicial deve ser menor que a data final.');
+                    }
+                    if (createDate(startDate) < minStartDate) {
+                        errors.push(`A data inicial deve ser posterior a 1º de agosto de 1994.`);
+                    }
+
+                    if (createDate(endDate) > createDate()) {
+                        errors.push(`A data final deve ser menor que a data atual.`);
+                    }
+
                 }
-                if (new Date(startDate) < minStartDate) {
-                    errors.push(`A data inicial deve ser posterior a 1º de agosto de 1994.`);
-                }
-
-                if (new Date(endDate) > new Date()) {
-                    errors.push(`A data final deve ser menor que a data atual.`);
-                }
-
-            }
-        }
-
-        this.sortedFeeTaxes.forEach((feeTax, i) => {
-            const feeKey = this.sortedFeeTaxes[i]
-            if (!this.datesTypes[feeKey]) return;
-            const { startDate: feeStartDate, endDate: feeEndDate } = this.datesTypes[feeKey];
-            if (!feeStartDate || !feeEndDate) {
-                errors.push(`A faixa de ${feeTax} deve ter datas válidas.`);
-                return;
             }
 
-            if (!isValidDate(feeStartDate) || !isValidDate(feeEndDate)) {
-                errors.push(`As datas de ${feeTax} devem ser válidas.`);
-                return;
-            }
-
-            const feeStart = new Date(feeStartDate);
-            const feeEnd = new Date(feeEndDate);
-
-            if (feeStart > feeEnd) {
-                errors.push(`A data inicial de ${feeTax} deve ser menor que a data final.`);
-                return;
-            }
-
-            if (feeStart < new Date(this.startDate) || feeEnd > new Date(this.endDate)) {
-                errors.push(`As datas de ${feeTax} devem estar entre a data inicial e final.`);
-                return;
-            }
-
-            if (i > 1) {
-                const prevFeeKey = this.sortedFeeTaxes[i - 1]
-                const { endDate: prevFeeEndDate } = this.datesTypes[prevFeeKey];
-                const prevFeeEnd = new Date(prevFeeEndDate);
-
-                if (prevFeeEnd > feeStart) {
-                    errors.push(`A data final da faixa de ${prevFeeKey} deve ser anterior a data inicial da faixa de ${feeTax}.`);
+            this.sortedFeeTaxes.forEach((feeTax, i) => {
+                const feeKey = this.sortedFeeTaxes[i]
+                if (!this.datesTypes[feeKey]) return;
+                const { startDate: feeStartDate, endDate: feeEndDate } = this.datesTypes[feeKey];
+                if (!feeStartDate || !feeEndDate) {
+                    errors.push(`A faixa de ${feeTax} deve ter datas válidas.`);
                     return;
                 }
-            }
-        });
 
-
-        if (errors.length > 0) {
-            this.errors = errors;
-            this.loading = false;
-            return;
-        }
-
-        const swapCommaAndDot = (str) => {
-            return str.replace(/\./g, '').replace(/,/g, '.');
-        }
-
-        const financialValue = parseFloat(swapCommaAndDot(String(this.initialValue)));
-
-        const indexMapping = {
-            inpc: "188",
-            igpm: "189",
-            ipca: "433",
-            tjpr: "tjpr",
-            "": ""
-        };
-
-        const indexVal = this.index;
-
-        const index = indexMapping[indexVal];
-
-        const startDate = this.startDate;
-        const endDate = this.endDate;
-
-        const formattedStartDate = formatDate(startDate);
-        const formattedEndDate = formatDate(endDate);
-
-        let dates = this.datesTypes
-        if (Object.keys(dates).length === 0) {
-            dates = {
-                "0%": { startDate: startDate, endDate: endDate },
-            };
-        }
-
-
-        const dataApi = async (index, startDate, endDate) => {
-            const url = `https://api.bcb.gov.br/dados/serie/bcdata.sgs.${index}/dados?formato=json&dataInicial=${startDate}&dataFinal=${endDate}`;
-
-            let attempt = 0;
-            let success = false;
-            let data;
-
-            while (attempt < 3 && !success) {
-                try {
-                    await pause(100 * attempt); // Aumenta o tempo de pausa a cada tentativa
-                    const response = await fetch(url);
-
-                    if (response.ok) {
-                        data = await response.json();
-                        success = true;
-                    } else {
-                        attempt++;
-                    }
-                } catch (error) {
-                    console.error(`Tentativa ${attempt + 1} falhou.`);
-                    attempt++;
+                if (!isValidDate(feeStartDate) || !isValidDate(feeEndDate)) {
+                    errors.push(`As datas de ${feeTax} devem ser válidas.`);
+                    return;
                 }
-            }
 
-            if (!success) {
-                window.alert(`Serviço indisponível no momento, tente novamente mais tarde.`);
-                location.reload();
+                const feeStart = createDate(feeStartDate);
+                const feeEnd = createDate(feeEndDate);
+
+                if (feeStart > feeEnd) {
+                    errors.push(`A data inicial de ${feeTax} deve ser menor que a data final.`);
+                    return;
+                }
+
+                if (feeStart < createDate(this.startDate) || feeEnd > createDate(this.endDate)) {
+                    errors.push(`As datas de ${feeTax} devem estar entre a data inicial e final.`);
+                    return;
+                }
+
+                if (i > 1) {
+                    const prevFeeKey = this.sortedFeeTaxes[i - 1]
+                    const { endDate: prevFeeEndDate } = this.datesTypes[prevFeeKey];
+                    const prevFeeEnd = createDate(prevFeeEndDate);
+
+                    if (prevFeeEnd > feeStart) {
+                        errors.push(`A data Inicial para os juros de ${feeTax} ao mês deve ser Maior ou Igual a Data Final dos juros de ${prevFeeKey} ao mês`);
+                        return;
+                    }
+                }
+            });
+
+
+            if (errors.length > 0) {
+                this.errors = errors;
+                this.loading = false;
                 return;
             }
 
-            return data;
-        };
+            const swapCommaAndDot = (str) => {
+                return str.replace(/\./g, '').replace(/,/g, '.');
+            }
 
-        const apiRequest = async (index, startDate, endDate) => {
-            if (
-                index === "" || monthDiff(convertStringToDate(startDate),
-                    convertStringToDate(endDate)) === 0
-            ) {
-                return {
-                    accumulatedIndex: parseFloat(1.00000),
-                    baseDate: convertStringToDate(endDate),
+            const financialValue = parseFloat(swapCommaAndDot(String(this.initialValue)));
+
+            const indexMapping = {
+                inpc: "188",
+                igpm: "189",
+                ipca: "433",
+                tjpr: "tjpr",
+                "": ""
+            };
+
+            const indexVal = this.index;
+
+            const index = indexMapping[indexVal];
+
+            const startDate = this.startDate;
+            const endDate = this.endDate;
+
+            const formattedStartDate = formatDate(startDate);
+            const formattedEndDate = formatDate(endDate);
+
+            let dates = this.datesTypes
+            if (Object.keys(dates).length === 0) {
+                dates = {
+                    "0%": { startDate: startDate, endDate: endDate },
                 };
             }
-            if (index === "tjpr") {
-                const values = ["190", "188"];
-                const dataArrays = [];
 
-                let getTjprBefore = 0;
 
-                const startInpcIgpdi = new Date(1995, 6, 1);
-                let userSelection = convertStringToDate(startDate);
+            const dataApi = async (index, startDate, endDate) => {
+                const url = `https://api.bcb.gov.br/dados/serie/bcdata.sgs.${index}/dados?formato=json&dataInicial=${startDate}&dataFinal=${endDate}`;
 
-                if (userSelection < startInpcIgpdi) {
-                    const oldStartDate = startDate;
-                    startDate = "01/07/1995";
-                    getTjprBefore = monthDiff(
-                        convertStringToDate(oldStartDate),
-                        convertStringToDate(startDate)
-                    );
+                let attempt = 0;
+                let success = false;
+                let data;
+
+                while (attempt < 3 && !success) {
+                    try {
+                        await pause(100 * attempt); // Aumenta o tempo de pausa a cada tentativa
+                        const response = await fetch(url);
+
+                        if (response.ok) {
+                            data = await response.json();
+                            success = true;
+                        } else {
+                            attempt++;
+                        }
+                    } catch (error) {
+                        console.error(`Tentativa ${attempt + 1} falhou.`);
+                        attempt++;
+                    }
                 }
 
-                for (const value of values) {
+                if (!success) {
+                    window.alert(`Serviço indisponível no momento, tente novamente mais tarde.`);
+                    location.reload();
+                    return;
+                }
+
+                return data;
+            };
+
+            const apiRequest = async (index, startDate, endDate) => {
+                if (
+                    index === "" || monthDiff(convertStringToDate(startDate),
+                        convertStringToDate(endDate)) === 0
+                ) {
+                    return {
+                        accumulatedIndex: parseFloat(1.00000),
+                        baseDate: convertStringToDate(endDate),
+                    };
+                }
+                if (index === "tjpr") {
+                    const values = ["190", "188"];
+                    const dataArrays = [];
+
+                    let getTjprBefore = 0;
+
+                    const startInpcIgpdi = new Date(1995, 6, 1);
+                    let userSelection = convertStringToDate(startDate);
+
+                    if (userSelection < startInpcIgpdi) {
+                        const oldStartDate = startDate;
+                        startDate = "01/07/1995";
+                        getTjprBefore = monthDiff(
+                            convertStringToDate(oldStartDate),
+                            convertStringToDate(startDate)
+                        );
+                    }
+
+                    for (const value of values) {
+                        try {
+                            dataArrays.push(await dataApi(value, startDate, endDate));
+                        } catch (error) {
+                            window.alert(
+                                `Serviço indisponível no momento, tente novamente mais tarde.`
+                            );
+                            location.reload();
+                        }
+                    }
+                    if (dataArrays[0].length !== dataArrays[1].length) {
+                        if (dataArrays[0].length > dataArrays[1].length) {
+                            dataArrays[0].pop();
+                        } else {
+                            dataArrays[1].pop();
+                        }
+                    }
+
+                    let averageArray = dataArrays[0].map((item, index) => {
+                        return {
+                            data: item.data,
+                            valor:
+                                (parseFloat(item.valor) + parseFloat(dataArrays[1][index].valor)) / 2,
+                        };
+                    });
+
+                    if (getTjprBefore > 0) {
+
+                        const tempArray = [];
+                        for (let i = 0; i < getTjprBefore; i++) {
+                            tempArray.unshift({
+                                data: tjprBefore[i].data,
+                                valor: tjprBefore[i].valor,
+                            });
+                        }
+                        averageArray.unshift.apply(averageArray, tempArray);
+                    }
+
+                    const result = await acummulatedIndex(averageArray, endDate);
+
+                    averageArray = [];
+
+                    return {
+                        accumulatedIndex: parseFloat(result.accumulatedIndex),
+                        baseDate: result.baseDate,
+                    };
+                } else {
                     try {
-                        dataArrays.push(await dataApi(value, startDate, endDate));
+                        return await acummulatedIndex(
+                            await dataApi(index, startDate, endDate),
+                            endDate
+                        );
                     } catch (error) {
                         window.alert(
                             `Serviço indisponível no momento, tente novamente mais tarde.`
@@ -264,157 +322,108 @@ const calculatorData = {
                         location.reload();
                     }
                 }
-                if (dataArrays[0].length !== dataArrays[1].length) {
-                    if (dataArrays[0].length > dataArrays[1].length) {
-                        dataArrays[0].pop();
-                    } else {
-                        dataArrays[1].pop();
+            };
+
+            const acummulatedIndex = async (data, endDate) => {
+                const modifiedArray = (data) => {
+                    let jsonApiLastDate = data[data.length - 1].data;
+                    const differMonths =
+                        monthDiff(
+                            convertStringToDate(endDate),
+                            convertStringToDate(jsonApiLastDate)
+                        );
+
+                    if (differMonths === 0) {
+                        baseDate = convertStringToDate(jsonApiLastDate);
+                        data.pop();
                     }
+                    if (differMonths === 1) {
+                        baseDate = convertStringToDate(endDate);
+                    }
+                    if (differMonths > 1) {
+                        baseDate = convertStringToDate(jsonApiLastDate);
+                        baseDate.setMonth(baseDate.getMonth() + 1);
+                    }
+                    return data;
                 }
 
-                let averageArray = dataArrays[0].map((item, index) => {
-                    return {
-                        data: item.data,
-                        valor:
-                            (parseFloat(item.valor) + parseFloat(dataArrays[1][index].valor)) / 2,
-                    };
-                });
+                const indexNumber = (data) => {
+                    let accumulatedIndex = 1;
+                    data.reduceRight((_, item, i) => {
+                        accumulatedIndex *= parseFloat(
+                            (parseFloat(item.valor) / 100 + 1).toFixed(9)
+                        );
+                    }, []);
 
-                if (getTjprBefore > 0) {
-
-                    const tempArray = [];
-                    for (let i = 0; i < getTjprBefore; i++) {
-                        tempArray.unshift({
-                            data: tjprBefore[i].data,
-                            valor: tjprBefore[i].valor,
-                        });
-                    }
-                    averageArray.unshift.apply(averageArray, tempArray);
+                    return accumulatedIndex;
                 }
-
-                const result = await acummulatedIndex(averageArray, endDate);
-
-                averageArray = [];
+                const accumulatedIndex = indexNumber(modifiedArray(data));
 
                 return {
-                    accumulatedIndex: parseFloat(result.accumulatedIndex),
-                    baseDate: result.baseDate,
+                    accumulatedIndex: accumulatedIndex,
+                    baseDate: baseDate,
                 };
-            } else {
-                try {
-                    return await acummulatedIndex(
-                        await dataApi(index, startDate, endDate),
-                        endDate
-                    );
-                } catch (error) {
-                    window.alert(
-                        `Serviço indisponível no momento, tente novamente mais tarde.`
-                    );
-                    location.reload();
-                }
-            }
-        };
-
-        const acummulatedIndex = async (data, endDate) => {
-            const modifiedArray = (data) => {
-                let jsonApiLastDate = data[data.length - 1].data;
-                const differMonths =
-                    monthDiff(
-                        convertStringToDate(endDate),
-                        convertStringToDate(jsonApiLastDate)
-                    );
-
-                if (differMonths === 0) {
-                    baseDate = convertStringToDate(jsonApiLastDate);
-                    data.pop();
-                }
-                if (differMonths === 1) {
-                    baseDate = convertStringToDate(endDate);
-                }
-                if (differMonths > 1) {
-                    baseDate = convertStringToDate(jsonApiLastDate);
-                    baseDate.setMonth(baseDate.getMonth() + 1);
-                }
-                return data;
-            }
-
-            const indexNumber = (data) => {
-                let accumulatedIndex = 1;
-                data.reduceRight((_, item, i) => {
-                    accumulatedIndex *= parseFloat(
-                        (parseFloat(item.valor) / 100 + 1).toFixed(9)
-                    );
-                }, []);
-
-                return accumulatedIndex;
-            }
-            const accumulatedIndex = indexNumber(modifiedArray(data));
-
-            return {
-                accumulatedIndex: accumulatedIndex,
-                baseDate: baseDate,
             };
-        };
 
-        const adjustnumbers = await apiRequest(index, formattedStartDate, formattedEndDate);
+            const adjustnumbers = await apiRequest(index, formattedStartDate, formattedEndDate);
 
-        const result = getResult(financialValue, startDate, formattedStartDate, endDate, formattedEndDate, adjustnumbers, dates)
+            const result = getResult(financialValue, startDate, formattedStartDate, endDate, formattedEndDate, adjustnumbers, dates)
 
-        const indexLabels = {
-            inpc: "INPC",
-            igpm: "IGP-M",
-            ipca: "IPCA",
-            tjpr: "TJPR",
-        }
+            const indexLabels = {
+                inpc: "INPC",
+                igpm: "IGP-M",
+                ipca: "IPCA",
+                tjpr: "TJPR",
+            }
 
-        const indexLabel = indexLabels[indexVal] ? indexLabels[indexVal] : indexVal.toUpperCase();
+            const indexLabel = indexLabels[indexVal] ? indexLabels[indexVal] : indexVal.toUpperCase();
 
-        this.results.push({
-            label: "Principal",
-            items: [
-                { label: "Data Inicial", value: formatDateResult(result.formattedStartDate) },
-                { label: "Data Final", value: formatDateResult(formatDate(adjustnumbers.baseDate.toISOString().slice(0, 10))) },
-                { label: "Valor Inicial", value: money(financialValue) },
-                { label: `Índice (${indexLabel})`, value: adjustnumbers.accumulatedIndex.toFixed(6) },
-                { label: "Valor Final", value: money(result.adjustedValue) }
-            ]
-        })
-
-        if (result.months05Percent > 0) {
             this.results.push({
-                label: "Juros 0,5% a.m",
+                label: "Principal",
                 items: [
-                    { label: "Data Inicial", value: formatDateResult(result.startDate1) },
-                    { label: "Data Final", value: formatDateResult(result.endDate1) },
-                    { label: "Período em Meses", value: (result.months05Percent / 30).toFixed(0) },
-                    { label: "Percentual Período", value: `${(result.rate05Percent * 100).toFixed(2)}%` },
-                    { label: "Valor Juros", value: money(result.interest05Percent) }
+                    { label: "Data Inicial", value: formatDateResult(result.formattedStartDate) },
+                    { label: "Data Final", value: formatDateResult(formatDate(adjustnumbers.baseDate.toISOString().slice(0, 10))) },
+                    { label: "Valor Inicial", value: money(financialValue) },
+                    { label: `Índice (${indexLabel})`, value: adjustnumbers.accumulatedIndex.toFixed(6) },
+                    { label: "Valor Final", value: money(result.adjustedValue) }
                 ]
             })
-        }
 
-        if (result.monthsOnePercent > 0) {
-            this.results.push({
-                label: "Juros 1% a.m",
-                items: [
-                    { label: "Data Inicial", value: formatDateResult(result.startDate05) },
-                    { label: "Data Final", value: formatDateResult(result.endDate05) },
-                    { label: "Período em Meses", value: (result.monthsOnePercent / 30).toFixed(0) },
-                    { label: "Percentual Período", value: `${(result.rateOnePercent * 100).toFixed(2)}%` },
-                    { label: "Valor Juros", value: money(result.interestOnePercent) }
-                ]
-            })
+            if (result.months05Percent > 0) {
+                this.results.push({
+                    label: "Juros 0,5% a.m",
+                    items: [
+                        { label: "Data Inicial", value: formatDateResult(result.startDate05) },
+                        { label: "Data Final", value: formatDateResult(result.endDate05) },
+                        { label: "Período em Meses", value: (result.months05Percent / 30).toFixed(0) },
+                        { label: "Percentual Período", value: `${(result.rate05Percent * 100).toFixed(2)}%` },
+                        { label: "Valor Juros", value: money(result.interest05Percent) }
+                    ]
+                })
+            }
+
+            if (result.monthsOnePercent > 0) {
+                this.results.push({
+                    label: "Juros 1% a.m",
+                    items: [
+                        { label: "Data Inicial", value: formatDateResult(result.startDate1) },
+                        { label: "Data Final", value: formatDateResult(result.endDate1) },
+                        { label: "Período em Meses", value: (result.monthsOnePercent / 30).toFixed(0) },
+                        { label: "Percentual Período", value: `${(result.rateOnePercent * 100).toFixed(2)}%` },
+                        { label: "Valor Juros", value: money(result.interestOnePercent) }
+                    ]
+                })
+            }
+            this.totalValue = money(result.adjustedValue + result.interest05Percent + result.interestOnePercent);
+        } catch (error) {
+            console.log()
+            this.loading = false;
+            window.alert(
+                `Serviço indisponível no momento, tente novamente mais tarde.`
+            );
+        } finally {
+            this.loading = false;
         }
-        this.totalValue = money(result.adjustedValue + result.interest05Percent + result.interestOnePercent);
-        // } catch (error) {
-        //     console.log()
-        //     this.loading = false;
-        //     window.alert(
-        //         `Serviço indisponível no momento, tente novamente mais tarde.`
-        //     );
-        // } finally {
-        this.loading = false;
-        // }
 
     }
 
