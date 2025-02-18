@@ -55,7 +55,8 @@ const calculatorData = {
         return this.feeTaxesTypes.sort((a, b) => a.value - b.value);
     },
     get sortedFeeTaxes() {
-        return [...this.feeTaxes].sort((a, b) => a - b);
+        const toNumber = (val) => Number(val.replace("%", "").replace(",", "."))
+        return [...this.feeTaxes].sort((a, b) => toNumber(a) - toNumber(b));
     },
     resultLabel(value) {
         const found = this.feeTaxesTypes.find(feeType => feeType.label === value);
