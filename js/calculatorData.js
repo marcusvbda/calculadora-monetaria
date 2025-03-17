@@ -17,23 +17,29 @@ const calculatorData = {
     },
     feeTaxes: [
         '0%',
-        // '0,5%', 
-        // '1%'
+        // 
+        '0,5%', 
+        '1%'
     ],
-    initialValue: null, /*120,*/
+    // initialValue: null, /*120,*/
+    initialValue: 120,
     totalValue: null,
-    index: null, /*'inpc', */
-    startDate: null, /* '2000-01-01',*/
-    endDate: null, /*'2025-02-13',*/
+    // index: null, /*'inpc', */
+    index: 'inpc',
+    // startDate: null, /* '2000-01-01',*/
+    startDate:  '2000-01-01',
+    // endDate: null, /*'2025-02-13',*/
+    // endDate: null, /*'2025-02-13',*/
+    endDate: '2025-02-13',
     datesTypes: {
-        // "0,5%": {
-        //     startDate: '2000-02-01',
-        //     endDate: '2003-03-01',
-        // },
-        // "1%": {
-        //     startDate: '2003-03-01',
-        //     endDate: '2025-02-13',
-        // }
+        "0,5%": {
+            startDate: '2000-02-01',
+            endDate: '2003-03-01',
+        },
+        "1%": {
+            startDate: '2003-03-01',
+            endDate: '2025-02-13',
+        }
     },
     errors: [],
     results: [],
@@ -396,7 +402,7 @@ const calculatorData = {
                     items: [
                         { label: "Data Inicial", value: formatDateResult(result.startDate05) },
                         { label: "Data Final", value: formatDateResult(result.endDate05) },
-                        { label: "Período em Meses", value: (result.months05Percent / 30).toFixed(0) },
+                        { label: "Período em Dias", value: (result.months05Percent ).toFixed(0) },
                         { label: "Percentual Período", value: `${(result.rate05Percent * 100).toFixed(2)}%` },
                         { label: "Valor Juros", value: money(result.interest05Percent) }
                     ]
@@ -409,7 +415,7 @@ const calculatorData = {
                     items: [
                         { label: "Data Inicial", value: formatDateResult(result.startDate1) },
                         { label: "Data Final", value: formatDateResult(result.endDate1) },
-                        { label: "Período em Meses", value: (result.monthsOnePercent / 30).toFixed(0) },
+                        { label: "Período em Dias", value: (result.monthsOnePercent).toFixed(0) },
                         { label: "Percentual Período", value: `${(result.rateOnePercent * 100).toFixed(2)}%` },
                         { label: "Valor Juros", value: money(result.interestOnePercent) }
                     ]
