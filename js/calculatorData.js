@@ -18,28 +18,27 @@ const calculatorData = {
     feeTaxes: [
         '0%',
         // 
-        '0,5%', 
-        '1%'
+        // '0,5%', 
+        // '1%'
     ],
-    // initialValue: null, /*120,*/
-    initialValue: 120,
+    initialValue: null, /*120,*/
+    // initialValue: 120,
     totalValue: null,
-    // index: null, /*'inpc', */
-    index: 'inpc',
-    // startDate: null, /* '2000-01-01',*/
-    startDate:  '2000-01-01',
+    index: null, /*'inpc', */
+    // index: 'inpc',
+    startDate: null, /* '2000-01-01',*/
+    // startDate:  '2000-01-01',
+    endDate: null, /*'2025-02-13',*/
     // endDate: null, /*'2025-02-13',*/
-    // endDate: null, /*'2025-02-13',*/
-    endDate: '2025-02-13',
     datesTypes: {
-        "0,5%": {
-            startDate: '2000-02-01',
-            endDate: '2003-03-01',
-        },
-        "1%": {
-            startDate: '2003-03-01',
-            endDate: '2025-02-13',
-        }
+        // "0,5%": {
+        //     startDate: '2000-02-01',
+        //     endDate: '2003-03-01',
+        // },
+        // "1%": {
+        //     startDate: '2003-03-01',
+        //     endDate: '2025-02-13',
+        // }
     },
     errors: [],
     results: [],
